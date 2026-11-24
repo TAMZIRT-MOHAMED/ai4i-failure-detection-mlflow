@@ -8,35 +8,35 @@ Le jeu de données synthétique UCI AI4I 2020 contient 10 000 observations, dont
 
 ## Reproduire l’expérience sous Ubuntu
 
-Utiliser **Python 3.12** (fourni par Ubuntu 24.04). Si Python ou le module `venv` manque sur Ubuntu 24.04, installer les paquets avec `sudo apt install python3.12 python3.12-venv`. Depuis la racine du dépôt cloné, créer l’environnement et installer les dépendances épinglées.
+Utiliser **Python 3.12** (fourni par Ubuntu 24.04). Si Python ou le module `venv` manque sur Ubuntu 24.04, installer les paquets avec `sudo apt install python3.12 python3.12-venv`. Depuis la racine du dépôt cloné, créer l’environnement et installer les dépendances épinglées. Les commandes ci-dessous fonctionnent dans Bash et fish en appelant directement les exécutables de l’environnement.
 
 ```bash
 python3.12 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
+.venv/bin/python -m pip install -r requirements.txt
 ```
+
+Pour activer l’environnement dans le terminal, utiliser `source .venv/bin/activate.fish` sous fish ou `source .venv/bin/activate` sous Bash.
 
 Dans ce terminal, démarrer le serveur MLflow local.
 
 ```bash
-mlflow server --backend-store-uri sqlite:///mlflow.db --host 127.0.0.1 --port 5001
+.venv/bin/mlflow server --backend-store-uri sqlite:///mlflow.db --host 127.0.0.1 --port 5001
 ```
 
 Dans un deuxième terminal, depuis la racine du dépôt, lancer la référence.
 
 ```bash
-source .venv/bin/activate
-MLFLOW_TRACKING_URI=http://127.0.0.1:5001 python -m src.train
+env MLFLOW_TRACKING_URI=http://127.0.0.1:5001 .venv/bin/python -m src.train
 ```
 
 Ouvrir l’expérience `ai4i-failure-detection`, puis le run `baseline-prior`. Sa fiche affiche `cv_average_precision_mean`, `failure_prevalence` et les paramètres, dont `dataset_sha256`. [Interface MLflow](http://127.0.0.1:5001)
 
-La commande `python -m src.train` utilise directement la base SQLite locale `mlflow.db` lorsque `MLFLOW_TRACKING_URI` est absente. Pour utiliser un serveur partagé, définir `MLFLOW_TRACKING_URI` avec son URL avant de lancer la même commande.
+La commande `.venv/bin/python -m src.train` utilise directement la base SQLite locale `mlflow.db` lorsque `MLFLOW_TRACKING_URI` est absente. Pour utiliser un serveur partagé, remplacer l’URL de `MLFLOW_TRACKING_URI` par celle du serveur.
 
-Pour explorer les données de développement, ouvrir le notebook depuis la racine avec l’environnement activé.
+Pour explorer les données de développement, ouvrir le notebook depuis la racine.
 
 ```bash
-python -m notebook exploration.ipynb
+.venv/bin/python -m notebook exploration.ipynb
 ```
 
 ## Résultat obtenu
@@ -48,3 +48,19 @@ Le run `baseline-prior` a obtenu une Average Precision moyenne de **0,033875** s
 ## Travaux prévus
 
 Comparer une régression logistique et une forêt aléatoire sur les mêmes plis de développement, puis sélectionner le modèle selon l’Average Precision moyenne. Évaluer le pipeline retenu sur le jeu de test réservé, le sauvegarder dans MLflow et vérifier son rechargement.
+
+## Première publication sur GitHub
+
+La création du dépôt utilise GitHub CLI, dont l’exécutable est `gh`. Sous Ubuntu, installer l’outil avec `sudo apt install gh` si nécessaire. Authentifier le compte dans le navigateur.
+
+```bash
+gh auth login --hostname github.com --git-protocol https --web
+```
+
+Lorsque le dépôt local est prêt et sans remote `origin`, créer le dépôt privé sur le compte authentifié et pousser les commits depuis la racine.
+
+```bash
+gh repo create ai4i-failure-detection-mlflow --private --source=. --remote=origin --push
+```
+
+Consulter l’URL et la visibilité avec `gh repo view --json url,visibility`. [Documentation GitHub CLI](https://cli.github.com/manual/gh_repo_create)
